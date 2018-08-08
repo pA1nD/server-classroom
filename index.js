@@ -13,7 +13,8 @@ app.use(bodyParser.json())
 app.use(session({ secret: 'Shh, its a secret! Unicorn.' }))
 
 app.use((req, res, next) => {
-  if (req.url == '/login' || req.url == '/register') {
+  const publicURLs = ['/login', '/register', '/']
+  if (publicURLs.indexOf(req.url) != -1) {
     return next()
   }
   if (!req.session.user) {
@@ -33,7 +34,21 @@ app.use((req, res, next) => {
 })
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html')
+  app.locals.db
+    .collection('User')
+    .find({})
+    .toArray()
+    .then(users => {
+      const userlist = users.reduce(
+        (html, user) =>
+          html +
+          `<li>${user.name}, DEBUG INFORMATION: ${JSON.stringify(user)}</li>`,
+        []
+      )
+      res.send(
+        `<html><body style='font-family: sans-serif;'><h2>Users:</h2><ul>${userlist}</ul></html></body>`
+      )
+    })
 })
 
 app.post('/register', (req, res) => {
@@ -81,9 +96,7 @@ app.post('/login', (req, res) => {
 })
 
 io.on('connection', socket => {
-  socket.on('chat message', msg => {
-    io.emit('chat message', msg)
-  })
+  socket.on('position', positionJandler)
 })
 
 mongo.connect(
@@ -103,3 +116,11 @@ mongo.connect(
     })
   }
 )
+
+// /////////////////
+// Functions
+// /////////////////
+
+function positionHandler(msg) {
+  io.emit('position', msg)
+}

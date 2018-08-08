@@ -56,11 +56,11 @@ This server is used as an API endpoint for all connectivity things.
 **Method**: `socket.io`<br />
 **EventName**: `position`<br />
 
-| Parameter name | Required/optional | Description                                                                           |
-| -------------- | ----------------- | ------------------------------------------------------------------------------------- |
-| user           | required          | The name of the user                                                                  |
-| action         | required          | [connect, disconnect, move]                                                           |
-| location       | required          | If action is move location is an object with new location values otherwise it's empty |
+| Parameter name | Required/optional | Description                       |
+| -------------- | ----------------- | --------------------------------- |
+| user           | required          | The name of the user              |
+| action         | required          | [connect, disconnect, move]       |
+| location       | required          | Object with new location or empty |
 
 ### Chat
 
