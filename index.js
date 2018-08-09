@@ -175,6 +175,13 @@ mongo.connect(
     db.dropDatabase()
     app.locals.db = db
     db.collection('User').createIndex({ name: 1 }, { unique: true })
+
+    app.locals.db
+      .collection('User')
+      .insertOne(
+        { name: 'name', password: 'password', type: 1 },
+        (err, obj) => {}
+      )
     http.listen(port, () => {
       console.log('Listening on *:' + port)
     })
