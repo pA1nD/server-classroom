@@ -97,25 +97,21 @@ app.post('/login', (req, res) => {
 io.on('connection', socket => {
   let authUser
 
-  // FIXME...
-  console.log(
-    'Connected User: ',
-    socket.request.session.user,
-    ' Request: ',
-    socket.request
-  )
-
-  app.locals.db
-    .collection('User')
-    .findOne({ name: socket.request.session.user })
-    .then(user => {
-      if (user) {
-        authUser = user
-        authenticatedUser()
-      } else {
-        socket.disconnect(true)
-      }
-    })
+  socket.on('login', data => {
+    console.log('User tries to login: ', data)
+    if (!data.name || !data.password) socket.disconnect(true)
+    app.locals.db
+      .collection('User')
+      .findOne({ name: data.name, password: data.password })
+      .then(user => {
+        if (user) {
+          authUser = user
+          authenticatedUser()
+        } else {
+          socket.disconnect(true)
+        }
+      })
+  })
 
   function authenticatedUser() {
     console.log('Authenitcated User connected')
