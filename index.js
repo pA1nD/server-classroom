@@ -25,6 +25,7 @@ app.use((req, res, next) => {
     return next()
   }
   if (!req.session.user) {
+    console.log('User got 403')
     res.send(403)
   }
   app.locals.db
@@ -35,6 +36,7 @@ app.use((req, res, next) => {
         req.authUser = user
         next()
       } else {
+        console.log('User got 403')
         res.send(403)
       }
     })
