@@ -1,0 +1,70 @@
+html
+  header
+    title The Classroom
+    style.
+      body {
+        margin: 30px;
+      }
+     section {
+       margin: 15px
+     }
+     
+  body(style='font-family: sans-serif;')
+    section
+      h2 Users:
+      ul
+        each user in users
+          li #{user.name} : #{JSON.stringify(user)}
+    section
+      h2 Events:
+      div#events(style='background-color:whitesmoke; padding: 15px;')
+      
+
+    script(src = "/socket.io/socket.io.js")
+    script.
+    
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          console.log(xhttp.responseText)
+          startSocket()
+        }
+      }
+      
+      xhttp.open("POST", "login", true)
+      xhttp.setRequestHeader("Content-Type", "application/json")
+      xhttp.send(JSON.stringify({"name": "name", "password": "password"}))
+    
+      function startSocket(){
+        var socket = io()
+        window.socket = socket
+        socket.on('connect', ()=>add("Connected"))
+        socket.on('disconnect', ()=>add("Disconnected"))
+        
+        socket.emit('position', {location: {x: 10, y: 1003459}})
+        socket.on('position', (data)=>add({position:data}))
+        
+        socket.emit('chat', {message: "The World is one Country."})
+        socket.on('chat', (data)=>add({chat:data}))
+        
+        socket.emit('action', {event: "piano.", data:{key:'a1'}})
+        socket.on('action', (data)=>add({action:data}))
+          
+        // /////////////
+        // HANDLERS
+        // /////////////
+        
+        function position(data){
+          add("<p>Connected</p>")
+        }
+        
+        
+        // /////////////
+        // Helpers
+        // /////////////
+        
+        function add(string){
+          document.querySelector('#events').insertAdjacentHTML("beforeend", "<p>"+JSON.stringify(string)+"</p>")
+        }
+      }
+      

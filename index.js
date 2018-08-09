@@ -8,9 +8,16 @@ const mongo = require('mongodb').MongoClient
 
 const port = process.env.PORT || 3000
 const mongoUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/dev'
+const sessionMiddleware = session({ secret: 'Shh, its a secret! Unicorn.' })
+
+app.set('view engine', 'pug')
+app.set('views', './views')
 
 app.use(bodyParser.json())
-app.use(session({ secret: 'Shh, its a secret! Unicorn.' }))
+app.use(sessionMiddleware)
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next)
+})
 
 app.use((req, res, next) => {
   const publicURLs = ['/login', '/register', '/']
@@ -39,15 +46,7 @@ app.get('/', (req, res) => {
     .find({})
     .toArray()
     .then(users => {
-      const userlist = users.reduce(
-        (html, user) =>
-          html +
-          `<li>${user.name}, DEBUG INFORMATION: ${JSON.stringify(user)}</li>`,
-        []
-      )
-      res.send(
-        `<html><body style='font-family: sans-serif;'><h2>Users:</h2><ul>${userlist}</ul></html></body>`
-      )
+      res.render('index', { users: users })
     })
 })
 
@@ -61,7 +60,7 @@ app.post('/register', (req, res) => {
         if (count != 0) {
           return res.sendStatus(400)
         }
-        app.locals.db.collection('User').insertOne(user, function(err, obj) {
+        app.locals.db.collection('User').insertOne(user, (err, obj) => {
           if (err) throw err
           console.log(user)
           req.session.user = user.name
@@ -83,10 +82,10 @@ app.post('/login', (req, res) => {
       .then(matchingUser => {
         if (matchingUser) {
           req.session.user = matchingUser.name
-          return res.send(200, matchingUser)
+          return res.send(200)
         } else {
           console.log('No user found: ', user)
-          res.sendStatus(400)
+          res.sendStatus(403)
         }
       })
   } else {
@@ -96,8 +95,73 @@ app.post('/login', (req, res) => {
 })
 
 io.on('connection', socket => {
-  socket.on('position', positionJandler)
+  let authUser
+  app.locals.db
+    .collection('User')
+    .findOne({ name: socket.request.session.user })
+    .then(user => {
+      if (user) {
+        authUser = user
+        authenticatedUser()
+      } else {
+        socket.disconnect(true)
+      }
+    })
+
+  function authenticatedUser() {
+    console.log('Authenitcated User connected')
+
+    position('connect')
+    socket.on('position', data => position('move', data))
+    socket.on('disconnect', data => position('disconnect'))
+
+    socket.on('chat', data => chat(data))
+
+    socket.on('action', data => action(data))
+  }
+  // /////////////////
+  // Functions for Socket
+  // /////////////////
+
+  function position(action, data = {}) {
+    // FIXME: broadcast here.
+    const position = {
+      user: authUser.name,
+      action: action,
+      location: data.location
+    }
+    io.emit('position', position)
+  }
+
+  function chat(data) {
+    const chat = {
+      user: authUser.name,
+      message: data.message,
+      time: new Date().getTime()
+    }
+    console.log(JSON.stringify(chat))
+
+    app.locals.db.collection('Chat').insertOne(chat, (err, obj) => {
+      if (err) throw err
+      // FIXME: broadcast here.
+      io.emit('chat', chat)
+    })
+  }
+
+  function action(data) {
+    // FIXME: broadcast here.
+    const action = {
+      user: authUser.name,
+      event: data.event,
+      data: data.data
+    }
+    io.emit('action', action)
+  }
 })
+
+// /////////////////
+// Connect DB and Start Server
+// /////////////////
 
 mongo.connect(
   mongoUrl,
@@ -116,11 +180,3 @@ mongo.connect(
     })
   }
 )
-
-// /////////////////
-// Functions
-// /////////////////
-
-function positionHandler(msg) {
-  io.emit('position', msg)
-}

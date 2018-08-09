@@ -92,6 +92,7 @@ This server is used as an API endpoint for all connectivity things.
 | -------------- | ----------------- | -------------------- |
 | user           | required          | The name of the user |
 | message        | required          | Some string.         |
+| time           | required          | Time in UTC MS.      |
 
 ### Actions
 
