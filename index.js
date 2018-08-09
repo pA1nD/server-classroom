@@ -172,7 +172,7 @@ mongo.connect(
 
     // CLEAN THE DB ON RESTART...
 
-    db.dropDatabase()
+    // db.dropDatabase()
     app.locals.db = db
     db.collection('User').createIndex({ name: 1 }, { unique: true })
 
