@@ -96,6 +96,15 @@ app.post('/login', (req, res) => {
 
 io.on('connection', socket => {
   let authUser
+
+  // FIXME...
+  console.log(
+    'Connected User: ',
+    socket.request.session.user,
+    ' Request: ',
+    socket.request
+  )
+
   app.locals.db
     .collection('User')
     .findOne({ name: socket.request.session.user })
