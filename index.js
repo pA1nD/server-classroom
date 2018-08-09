@@ -96,6 +96,7 @@ app.post('/login', (req, res) => {
 
 io.on('connection', socket => {
   let authUser
+  console.log('User tries to connect')
 
   socket.on('login', data => {
     console.log('User tries to login: ', data)
