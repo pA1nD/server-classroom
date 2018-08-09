@@ -102,7 +102,7 @@ io.on('connection', socket => {
 
   socket.on('login', data => {
     console.log('User tries to login: ', data)
-    if (!data.name || !data.password) socket.disconnect(true)
+    // if (!data.name || !data.password) socket.disconnect(true)
     app.locals.db
       .collection('User')
       .findOne({ name: data.name, password: data.password })
@@ -111,6 +111,7 @@ io.on('connection', socket => {
           authUser = user
           authenticatedUser()
         } else {
+          console.log('Disconnected unauthenticated user.')
           socket.disconnect(true)
         }
       })
