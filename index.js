@@ -139,6 +139,8 @@ io.on('connection', socket => {
       action: action,
       location: data.location
     }
+    console.log(JSON.stringify(position))
+
     io.emit('position', position)
   }
 
@@ -164,6 +166,7 @@ io.on('connection', socket => {
       event: data.event,
       data: data.data
     }
+    console.log(JSON.stringify(action))
     io.emit('action', action)
   }
 })
