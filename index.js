@@ -121,6 +121,8 @@ io.on('connection', socket => {
     console.log('Authenitcated User connected')
 
     position('connect')
+    socket.on('connect', data => position('connect'))
+
     socket.on('position', data => position('move', data))
     socket.on('disconnect', data => position('disconnect'))
 
